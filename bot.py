@@ -1,3 +1,142 @@
+# ----------------------------------------------------------------------------------------------
+# Self-contained bundle. The kit wrapper (mechfight.py) and the map model (world.py) are embedded
+# below, so this one file works even if the other files in the repo are missing or were edited.
+# ----------------------------------------------------------------------------------------------
+import base64 as _b64
+import sys as _sys
+import types as _types
+import zlib as _zlib
+
+_MECHFIGHT_B64 = """
+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
+RwC7/wU0b2ku
+"""
+_WORLD_B64 = """
+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
+"""
+
+
+def _embed(name, blob):
+    mod = _types.ModuleType(name)
+    mod.__file__ = name + ".py (embedded)"
+    _sys.modules[name] = mod
+    src = _zlib.decompress(_b64.b64decode("".join(blob.split()))).decode("utf-8")
+    exec(compile(src, name + ".py", "exec", dont_inherit=True), mod.__dict__)
+
+
+_embed("mechfight", _MECHFIGHT_B64)
+_embed("world", _WORLD_B64)
+# ----------------------------------------------------------------------------------------------
+
 """mechfight bot: survive the zone, win fights with lead-aimed gun + lightning/laser, break line of sight when hurt."""
 import math
 import os
@@ -51,7 +190,7 @@ def aim_of(v):
 
 
 class Bot:
-    name = "kiter-v3"
+    name = "kiter-v4"
 
     def __init__(self, hello):
         self.cfg = hello["config"]
@@ -88,6 +227,10 @@ class Bot:
         self.slow_until = 0.0
         self.last_aim = [0.0, 0.0]
         self.laser_hold = 0
+        self.visited = []
+        self.vis_t = -99.0
+        self.explore_goal = None
+        self.explore_t = -99.0
 
     # ------------------------------------------------------------ helpers
     def los(self, a, b):
@@ -496,12 +639,45 @@ class Bot:
             if bid is None and d < 38 and any(m["kind"] == "npc" and math.dist(m["pos"][:2], best[:2]) < 3 for m in obs["mechs"]):
                 return (0.0, 0.0)  # in range of a drone: stand and shoot it
             return self.go(x, y, best[:2], t)
-        # nothing to do: stage inside the next circle
+        # nothing to do: early on with an empty second slot, go looking for a weapon
         dz = math.hypot(x - zc[0], y - zc[1])
         z_ = obs["zone"]
+        if held is None and t < 150 and t < z_["shrink_start"] - 25 and me["hp"] > 0.6 * me["max_hp"]:
+            g = self.explore_target(x, y, zc, zsafe, t)
+            if g is not None:
+                return self.go(x, y, g, t)
+        # otherwise stage inside the next circle
         if t >= z_["shrink_start"] - 25 or dz > zsafe * 0.5:
             return self.go(x, y, self.zone_point(zc, zsafe, x, y), t)
         return (0.0, 0.0)
+
+    def explore_target(self, x, y, zc, zsafe, t):
+        """Pick a spot 70-110 m away, inside the safe zone, far from places we have already been."""
+        if t - self.vis_t > 3.0:
+            self.visited.append((x, y))
+            self.vis_t = t
+            if len(self.visited) > 120:
+                self.visited.pop(0)
+        g = self.explore_goal
+        if g is not None and t - self.explore_t < 20 and math.hypot(g[0] - x, g[1] - y) > 12:
+            return g
+        w = self.world
+        best, bs = None, -1e9
+        for k in range(16):
+            a = 2 * PI * k / 16 + self.rng.uniform(-0.15, 0.15)
+            for r in (70, 110):
+                cx, cy = x + r * math.cos(a), y + r * math.sin(a)
+                if math.hypot(cx - zc[0], cy - zc[1]) > zsafe:
+                    continue
+                if w is not None and w.blocked(cx, cy):
+                    continue
+                md = min([math.hypot(cx - vx, cy - vy) for vx, vy in self.visited] or [150.0])
+                sc = min(md, 150.0) + self.rng.uniform(0, 10)
+                if sc > bs:
+                    best, bs = (cx, cy), sc
+        self.explore_goal = best
+        self.explore_t = t
+        return best
 
     def farm_fire(self, obs, me, x, y, z, muzzle, near, gun):
         """Shoot visible crates and drones when no mech is around (cubes and weapons)."""
