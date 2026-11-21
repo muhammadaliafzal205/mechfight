@@ -13,7 +13,7 @@ except Exception:  # keep playing without a map
     World = None
 
 PI = math.pi
-TUNE = {"smin": 0.2, "smax": 0.5, "pref_gun": 130.0, "flip": 0.7}
+TUNE = {"smin": 0.2, "smax": 0.5, "pref_gun": 160.0, "flip": 0.7}
 UPGRADE_PRIORITY = ["gun_mag", "gun_damage", "plating", "lightning_efficiency", "armor", "gun_rate", "nanites",
                     "laser_damage", "lightning_chain", "laser_charge", "gyros", "servos", "sensors", "gun_velocity",
                     "jets", "reactor", "capacitor", "lightning_range", "laser_pierce"]
@@ -51,7 +51,7 @@ def aim_of(v):
 
 
 class Bot:
-    name = "kiter-v2"
+    name = "kiter-v3"
 
     def __init__(self, hello):
         self.cfg = hello["config"]
