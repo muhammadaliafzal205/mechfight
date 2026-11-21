@@ -14,8 +14,8 @@ except Exception:  # keep playing without a map
 
 PI = math.pi
 TUNE = {"smin": 0.2, "smax": 0.5, "pref_gun": 130.0, "flip": 0.7}
-UPGRADE_PRIORITY = ["armor", "plating", "gun_damage", "nanites", "gun_rate", "lightning_efficiency", "laser_damage",
-                    "gyros", "servos", "gun_mag", "lightning_chain", "laser_charge", "sensors", "gun_velocity",
+UPGRADE_PRIORITY = ["gun_mag", "gun_damage", "plating", "lightning_efficiency", "armor", "gun_rate", "nanites",
+                    "laser_damage", "lightning_chain", "laser_charge", "gyros", "servos", "sensors", "gun_velocity",
                     "jets", "reactor", "capacitor", "lightning_range", "laser_pierce"]
 
 
@@ -51,7 +51,7 @@ def aim_of(v):
 
 
 class Bot:
-    name = "kiter-v1"
+    name = "kiter-v2"
 
     def __init__(self, hello):
         self.cfg = hello["config"]
@@ -252,7 +252,7 @@ class Bot:
         zc, zr, zsafe = self.zone_target(obs)
         zd = math.hypot(x - zc[0], y - zc[1])
         outside = not me["in_zone"]
-        retreat = bool(near) and (hp_frac < 0.3 or (hp_frac < 0.5 and len(near) >= 3))
+        retreat = False  # v2: never run; every fight we leave is damage we do not deal
 
         if outside or zd > zsafe + 15:
             ux, uy = self.go(x, y, self.zone_point(zc, zsafe, x, y), t)
