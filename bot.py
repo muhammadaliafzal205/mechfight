@@ -158,7 +158,7 @@ TUNE = {"smin": 0.2, "smax": 0.5, "pref_gun": 160.0, "flip": 0.7,
         "pref_laser": 110.0, "pref_ltn": 27.0, "ltn_energy": 25.0,
         "retreat_hp": 0.0, "dodge": 1.6, "safe_hi": 0.8, "safe_lo": 0.45,
         "explore_t": 150.0, "farm_npc_t": 260.0, "farm_crate_t": 200.0,
-        "boost_kite": 0.0, "fire_err": 0.02, "aim_r": 0.8, "hpw": 1.0, "laser_min_d": 25.0}
+        "boost_kite": 0.0, "duck": 0.0, "duck_ang": 0.2, "duck_hold": 0.9, "fire_err": 0.02, "aim_r": 0.8, "hpw": 1.0, "laser_min_d": 25.0}
 
 
 def _load_variant():
@@ -219,7 +219,7 @@ def aim_of(v):
 
 
 class Bot:
-    name = "kiter-v5"
+    name = "kiter-v6"
 
     def __init__(self, hello):
         self.cfg = hello["config"]
@@ -256,6 +256,8 @@ class Bot:
         self.slow_until = 0.0
         self.last_aim = [0.0, 0.0]
         self.laser_hold = 0
+        self.duck_cell = None
+        self.duck_until = -99.0
         self.visited = []
         self.vis_t = -99.0
         self.explore_goal = None
@@ -427,6 +429,7 @@ class Bot:
         zd = math.hypot(x - zc[0], y - zc[1])
         outside = not me["in_zone"]
         retreat = bool(near) and hp_frac < TUNE["retreat_hp"]
+        duck_to = self.duck_target(obs, x, y, z, t, zc, zsafe) if (TUNE["duck"] > 0 and not outside) else None
 
         if outside or zd > zsafe + 15:
             ux, uy = self.go(x, y, self.zone_point(zc, zsafe, x, y), t)
@@ -435,6 +438,11 @@ class Bot:
             label = "zone"
             if target and not outside:
                 mv = (mv[0] * 0.8, mv[1] * 0.8)
+        elif TUNE["duck"] > 0 and duck_to is not None:
+            ux, uy = self.go(x, y, duck_to, t)
+            mv = (ux, uy)
+            boost = energy > 25 and math.hypot(duck_to[0] - x, duck_to[1] - y) > 4
+            label = "duck"
         elif retreat:
             mv = self.retreat_move(obs, x, y, z, near, zc, zsafe, t)
             boost = energy > 25
@@ -450,7 +458,7 @@ class Bot:
 
         # ---- bullets and beams
         dv = self.dodge(obs, x, y, z, size)
-        if dv:
+        if dv and label != "duck":
             mv = (mv[0] + TUNE["dodge"] * dv[0], mv[1] + TUNE["dodge"] * dv[1])
 
         # ---- stuck detection
@@ -594,6 +602,55 @@ class Bot:
             mvx += cx * 1.2
             mvy += cy * 1.2
         return (mvx, mvy)
+
+    def duck_target(self, obs, x, y, z, t, zc, zsafe):
+        """An enemy is charging a laser at us in plain sight: return a nearby cell that breaks its line of sight."""
+        w = self.world
+        if w is None:
+            return None
+        threat = None
+        for m in obs["mechs"]:
+            if m["kind"] != "mech" or not m.get("charging"):
+                continue
+            bx, by = x - m["pos"][0], y - m["pos"][1]
+            d = math.hypot(bx, by)
+            if d < 30 or d > 270:
+                continue
+            if abs(wrap(m["aim"][0] - math.atan2(by, bx))) > TUNE["duck_ang"]:
+                continue
+            eye = (m["pos"][0], m["pos"][1], m["pos"][2] + 8)
+            if not w.los(eye, (x, y, z + 5)):
+                continue  # a wall already protects us
+            if threat is None or d < threat[0]:
+                threat = (d, eye)
+        if threat is None:
+            # the enemy may have left our view because we are now hidden: stay put until the beam is spent
+            if self.duck_cell is not None and t < self.duck_until:
+                return self.duck_cell
+            self.duck_cell = None
+            return None
+        eye = threat[1]
+        if self.duck_cell is not None and t < self.duck_until and not w.los(eye, (self.duck_cell[0], self.duck_cell[1], w.ground(self.duck_cell[0], self.duck_cell[1]) + 5)):
+            return self.duck_cell
+        best, bs = None, 1e9
+        for r in (4, 6, 8, 10, 12, 14):
+            for k in range(16):
+                a = k * PI / 8
+                cx, cy = x + r * math.cos(a), y + r * math.sin(a)
+                if w.blocked(cx, cy) or math.hypot(cx - zc[0], cy - zc[1]) > zsafe + 20:
+                    continue
+                if not w.line_free((x, y), (cx, cy)):
+                    continue
+                if w.los(eye, (cx, cy, w.ground(cx, cy) + 5)):
+                    continue
+                if r < bs:
+                    best, bs = (cx, cy), r
+            if best is not None:
+                break
+        if best is not None:
+            self.duck_cell = best
+            self.duck_until = t + TUNE["duck_hold"]
+        return best
 
     def retreat_move(self, obs, x, y, z, near, zc, zsafe, t):
         w = self.world
