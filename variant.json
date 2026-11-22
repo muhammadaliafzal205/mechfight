@@ -1,8 +1,8 @@
 {
-  "smin": 0.2,
-  "smax": 0.5,
-  "pref_gun": 220,
-  "flip": 0.7,
+  "smin": 0.4,
+  "smax": 1.0,
+  "pref_gun": 160,
+  "flip": 0.35,
   "pref_laser": 110,
   "pref_ltn": 27,
   "ltn_energy": 25,
