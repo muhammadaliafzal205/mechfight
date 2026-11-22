@@ -13,8 +13,8 @@ except Exception:  # keep playing without a map
     World = None
 
 PI = math.pi
-TUNE = {"ex_t": 170.0, "ex_cell": 50.0, "sc": 1.1, "lg": 0, "bk": 0, "bke": 35, "rt1": 0.3, "rt2": 0.5, "rtn": 3, "smin": 0.2, "smax": 0.5, "pref_gun": 130.0, "flip": 0.7}
-UPGRADE_PRIORITY = ["armor", "plating", "gun_damage", "nanites", "gun_rate", "lightning_efficiency", "laser_damage",
+TUNE = {"ex_t": 260.0, "ex_cell": 50.0, "sc": 1.1, "lg": 0, "bk": 0, "bke": 35, "rt1": 0.4, "rt2": 0.65, "rtn": 2, "smin": 0.2, "smax": 0.5, "pref_gun": 150.0, "flip": 0.7}
+UPGRADE_PRIORITY = ["armor", "plating", "nanites", "gun_damage", "gun_rate", "lightning_efficiency", "laser_damage",
                     "gyros", "servos", "gun_mag", "lightning_chain", "laser_charge", "sensors", "gun_velocity",
                     "jets", "reactor", "capacitor", "lightning_range", "laser_pierce"]
 
@@ -51,7 +51,7 @@ def aim_of(v):
 
 
 class Bot:
-    name = "kiter-v3"
+    name = "kiter-v1"
 
     def __init__(self, hello):
         self.cfg = hello["config"]
@@ -494,7 +494,7 @@ class Bot:
                 continue
             if kind == "laser" or (kind == "lightning" and held is None):
                 cand.append((9.0 if held is None else 7.0, pos, i))
-        if me["hp"] > 0.5 * me["max_hp"] and t < 260 and me["cubes"] < 10:
+        if me["hp"] > 0.4 * me["max_hp"] and t < 330 and me["cubes"] < 10:
             for m in obs["mechs"]:
                 if m["kind"] == "npc" and ok(m["pos"]):
                     cand.append((3.0, m["pos"], None))
@@ -502,7 +502,7 @@ class Bot:
         for i, pos in self.cubes.items():
             if ok(pos) and not full:
                 cand.append((4.0, pos, None))
-        if t < 200 and not full:
+        if t < 300 and not full:
             for i, pos in self.crates.items():
                 if ok(pos):
                     cand.append((2.5, pos, None))
